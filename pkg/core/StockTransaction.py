@@ -83,7 +83,7 @@ class StockTransaction:
         self.sell_all = sell_all # Only applies to tr_type=='sell'
 
         # Checks
-        if self.sell_all == True and tr_type is not 'sell':
+        if self.sell_all == True and tr_type != 'sell':
             raise RuntimeError('Specified sell_all=True with a buy transaction')
 
         self._sold = False # Denotes that this transaction has been sold
