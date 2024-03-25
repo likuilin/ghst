@@ -315,6 +315,7 @@ class StockTransactor:
                     'amount',
                     'cost-basis',
                     'added-basis',
+                    'date',
                     'cur-price',
                     'cur-value',
                     'cur-gain',
@@ -324,17 +325,27 @@ class StockTransactor:
                     'ticker',
                     'amount',
                     'cost-basis',
-                    'added-basis']
-            tickers = [x.upper() for x in self._buy_transactions[brokerage].keys()]
+                    'added-basis',
+                    'date',
+                    'price']
+            tickers = [x for x in self._buy_transactions[brokerage].keys()]
             if fetch_quotes:
                 # Grab all ticker quote objects
-                ytickers = yf.Tickers(tickers)
+                ytickers = yf.Tickers([x.upper() for x in tickers])
             for ticker in tickers:
+                # Ticker may not exist in ytickers
+                current_price = None
                 if fetch_quotes:
-                    current_price = ytickers.tickers[ticker].fast_info["last_price"]
+                    try:
+                        current_price = ytickers.tickers.get(ticker.upper()).fast_info["last_price"]
+                    except KeyError:
+                        print(f'WARNING: Error while retrieving quote for ticker {ticker}')
                 for tr in self._buy_transactions[brokerage][ticker].data:
                     cost_basis = tr.price * tr.amount + tr.add_basis
                     if fetch_quotes:
+                        if current_price is None:
+                            table.add_row([ticker,tr.amount,round(cost_basis,2),round(tr.add_basis,2),tr.date,0,0,'(err)','(err)'])
+                            continue
                         current_value = current_price * tr.amount
                         current_gain  = tr.amount*(current_price-tr.price)
                         current_gain_pct = round(100* current_gain/cost_basis,2)
@@ -345,6 +356,7 @@ class StockTransactor:
                             tr.amount,
                             round(cost_basis,2),
                             round(tr.add_basis,2),
+                            tr.date,
                             current_price,
                             round(current_value,2),
                             f'{round(current_gain,2)} ({current_gain_pct}%)',
@@ -352,12 +364,12 @@ class StockTransactor:
                         total_cost_basis += cost_basis
                         total_value += current_value
                     else:
-                        table.add_row([ticker,tr.amount,round(cost_basis,2),round(tr.add_basis,2)])
+                        table.add_row([ticker,tr.amount,round(cost_basis,2),round(tr.add_basis,2),tr.date,round(tr.price,2)])
             ostr += '\n'
             ostr += table.get_string() + '\n'
             if fetch_quotes:
                 net_gain = total_value - total_cost_basis
-                net_gain_percent = 100*net_gain/(total_cost_basis)
+                net_gain_percent = 0 if total_cost_basis == 0 else 100*net_gain/(total_cost_basis)
                 ostr += f'Total Value         = ${round(total_value,2)}\n'
                 ostr += f'Total Adjusted Gain = ${round(net_gain,2)} ({round(net_gain_percent,2)}%)\n'
             tables[brokerage] = table
