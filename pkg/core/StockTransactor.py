@@ -328,9 +328,9 @@ class StockTransactor:
                     'added-basis',
                     'date',
                     'price']
-            tickers = [x for x in self._buy_transactions[brokerage].keys()]
+            tickers = [x for x in self._buy_transactions[brokerage].keys() if len(self._buy_transactions[brokerage][x].data) > 0]
             if fetch_quotes:
-                # Grab all ticker quote objects
+                # Grab ticker quote objects
                 ytickers = yf.Tickers([x.upper() for x in tickers])
             for ticker in tickers:
                 # Ticker may not exist in ytickers
