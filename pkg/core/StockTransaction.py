@@ -38,15 +38,21 @@ class StockTransaction:
         else:
             exclude_wash = False
 
+        def floatc(s):
+            if isinstance(s, str):
+                return float(s.replace(",", ""))
+            else:
+                return float(s)
+
         return cls(
             tr_type = str(in_dict['tr_type']),
             ticker = str(in_dict['ticker']),
-            amount = float(in_dict['amount']),
-            price = float(in_dict['price']),
+            amount = floatc(in_dict['amount']),
+            price = floatc(in_dict['price']),
             date = str(in_dict['date']),
-            comm = float(in_dict['comm']),
+            comm = floatc(in_dict['comm']),
             brokerage = str(in_dict['brokerage']),
-            add_basis = float(add_basis),
+            add_basis = floatc(add_basis),
             lot_ids = lot_ids,
             exclude_wash=exclude_wash
         )
