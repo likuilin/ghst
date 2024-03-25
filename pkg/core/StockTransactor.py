@@ -731,6 +731,8 @@ class StockTransactor:
                 csv.register_dialect('stocks', delimiter=',', skipinitialspace=True)
                 reader = csv.DictReader(f,dialect='stocks')
                 for line in reader:
+                        if line['ticker'].startswith('#'):
+                            continue
                         if line['ticker'].startswith('!'): # Special instruction:
                             self.process_command(line['ticker'])
                             command_strings.append(line['ticker'])
